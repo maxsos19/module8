@@ -1,0 +1,51 @@
+using System;
+using System.IO;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        string path = args[0]; //  путь до папки
+        try
+        {
+            DirectoryInfo directory = new DirectoryInfo(path);
+            if (!directory.Exists)
+            {
+                Console.WriteLine("Папка не существует!");
+                return;
+            }
+
+            foreach (FileInfo file in directory.GetFiles())
+            {
+                if (DateTime.Now - file.LastAccessTime > TimeSpan.FromMinutes(30))
+                {
+                    file.Delete();
+                    Console.WriteLine("Удален файл {0}", file.FullName);
+                }
+            }
+
+            foreach (DirectoryInfo subdirectory in directory.GetDirectories())
+            {
+                if (DateTime.Now - subdirectory.LastAccessTime > TimeSpan.FromMinutes(30))
+                {
+                    subdirectory.Delete(true);
+                    Console.WriteLine("Удалена папка {0}", subdirectory.FullName);
+                }
+                else
+                {
+                    Main(new string[] { subdirectory.FullName }); // рекурсивный вызов для очистки подпапок
+                }
+            }
+
+            Console.WriteLine("Очистка завершена.");
+        }
+        catch (UnauthorizedAccessException e)
+        {
+            Console.WriteLine(e.Message);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine("Произошла ошибка: " + e.Message);
+        }
+    }
+}
